@@ -1,0 +1,43 @@
+format_version: 0.9.9
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+app:
+  envs:
+  - BITRISE_PROJECT_TITLE: BitriseSwiftSampleApp
+    opts:
+      is_expand: no
+  - XCODE_PROJECT_PATH: ./${BITRISE_PROJECT_TITLE}.xcodeproj
+    opts:
+      is_expand: yes
+  - XCODE_PROJECT_SCHEME: ${BITRISE_PROJECT_TITLE}
+    opts:
+      is_expand: yes
+workflows:
+  test:
+    steps:
+    - new-xcode-test:
+        inputs:
+        - project_path: ${XCODE_PROJECT_PATH}
+          opts:
+            is_expand: yes
+        - scheme: ${XCODE_PROJECT_SCHEME}
+          opts:
+            is_expand: yes
+        - simulator_device: iPhone 6
+        - simulator_os_version: latest
+  analyze:
+    steps:
+    - script:
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -v
+            set -e
+            xcodebuild -project "${XCODE_PROJECT_PATH}" -scheme "${XCODE_PROJECT_SCHEME}" analyze
+  archive:
+    before_run:
+    - test
+    steps:
+    - new-xcode-archive:
+        inputs:
+        - project_path: ${XCODE_PROJECT_PATH}
+        - scheme: ${XCODE_PROJECT_SCHEME}
